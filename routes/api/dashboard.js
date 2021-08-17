@@ -68,9 +68,10 @@ router.post("/add/menu", async(req,res) => {
         return res.status(400).send({}); //user - try to add a menu to nonexistent restaurant
     } else {
         const duplicateMenus = await Menu.find({menu_name: req.body.menu_name, restaurant_id: req.body.restaurant_id}); //check if the restaurant has a menu with the same name
+        //check size of duplicateMenus
         if(duplicateMenus.length != 0) {
             return res.status(400).send({}); //menu exists
-        } else { //add this new menu
+        } else { //add this new menu!
             const newMenu = new Menu(req.body);
             newMenu.save().catch(err => console.log(err));
             return res.status(200).send(newMenu);
