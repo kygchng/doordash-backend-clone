@@ -71,7 +71,7 @@ router.post("/add/menu", async(req,res) => {
         //check size of duplicateMenus
         if(duplicateMenus.length != 0) {
             return res.status(400).send({}); //menu exists
-        } else { //add this new menu!
+        } else { //add this new menu! 
             const newMenu = new Menu(req.body);
             newMenu.save().catch(err => console.log(err));
             return res.status(200).send(newMenu);
@@ -79,4 +79,4 @@ router.post("/add/menu", async(req,res) => {
     }
 });
 
-module.exports = router;
+module.exports = router; //exports
