@@ -29,6 +29,10 @@ app.use("/api/v1/dashboard", dashboard);
 //// http://localhost:5000/api/v1/dashboard/fetch/restaurant/:email
 //// http://localhost:5000/api/v1/dashboard/update/restaurant
 //// http://localhost:5000/api/v1/dashboard/add/menu
+//// http://localhost:5000/api/v1/dashboard/fetch/menus/:restaurantId
+//// http://localhost:5000/api/v1/dashboard/remove/menu/:menuID
+//// http://localhost:5000/api/v1/dashboard/add/item/menu
+//// http://localhost:5000/api/v1/dashboard/fetch/items/:menuId
 
 app.listen(port, () => console.log(`API server listening on ${port}`));
 

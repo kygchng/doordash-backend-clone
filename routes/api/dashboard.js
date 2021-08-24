@@ -79,4 +79,46 @@ router.post("/add/menu", async(req,res) => {
     }
 });
 
+router.get("/fetch/menus/:restaurantId", async(req,res) => {
+    const menuList = await Menu.find({restaurant_id: req.params.restaurantId});
+    return res.status(200).send(menuList);
+});
+
+router.delete("/remove/menu/:menuID", async(req,res) => {
+    const menu_id = ObjectId(req.params.menuID);
+    const deletedMenu = await Menu.findOneAndDelete({_id: menu_id});
+    if(deletedMenu) {
+        return res.status(200).send(deletedMenu);
+    } else {
+        return res.status(400).send({}); //user entered a nonexistent menu to delete
+    }
+});
+
+router.post("/add/item/menu", async(req,res) => {
+    const menuId = ObjectId(req.body.menu_id);
+    //check if menu exists
+    const menu = await Menu.findById(menuId);
+    if(!menu) {
+        //menu is undefined (doesn't exist)
+        return res.status(404).send({});
+    } else {
+        //check if it has a duplicate item with same name
+        const duplicateItem = await Item.find({menu_id: req.body.menu_id, item_name: req.body.item_name});
+        if(duplicateItem.length != 0) {
+            //duplicates exists
+            return res.status(400).send({});
+        } else {
+            //no duplicate items
+            const newItem = new Item(req.body);
+            newItem.save().catch(err => console.log(err));
+            return res.status(200).send(newItem);
+        }
+    }
+});
+
+router.get("/fetch/items/:menuId", async(req,res) => {
+    const items = await Item.find({menu_id: req.params.menuId});
+    return res.status(200).send(items); //could check if menu exists but too lazy
+});
+
 module.exports = router; //exports
