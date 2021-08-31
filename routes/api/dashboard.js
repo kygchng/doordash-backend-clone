@@ -110,7 +110,25 @@ router.post("/add/item/menu", async(req,res) => {
         } else {
             //no duplicate items
             const newItem = new Item(req.body);
-            newItem.save().catch(err => console.log(err));
+            //add item to menu
+            console.log(newItem._id);
+
+            const menuItems = menu.items; //separate menu.items into a separate []
+            //console.log("menuItems: " + menuItems)
+
+            const updatedItems = menuItems;
+            updatedItems.push(newItem._id);
+            //console.log("updatedItems: " + updatedItems);
+
+            const updatedValues = {
+                menu_name: menu.menu_name,
+                restaurant_id: menu.restaurant_id,
+                items: updatedItems,
+                category_tags: menu.category_tags
+            }
+            await Menu.findOneAndUpdate({_id: menuId}, updatedValues);
+
+            newItem.save().catch(err => console.log(err)); //save at the end
             return res.status(200).send(newItem);
         }
     }
@@ -119,6 +137,68 @@ router.post("/add/item/menu", async(req,res) => {
 router.get("/fetch/items/:menuId", async(req,res) => {
     const items = await Item.find({menu_id: req.params.menuId});
     return res.status(200).send(items); //could check if menu exists but too lazy
+});
+
+router.delete("/delete/item/:itemID", async(req, res) => {
+    const itemId = ObjectId(req.params.itemID);
+    //delete item from item schema
+    console.log("itemId: " + itemId);
+    // console.log(typeof itemId); check if it returns "object"
+
+    const deletedItem = await Item.findOneAndDelete({_id: itemId});
+    console.log("deletedItem: " + deletedItem);
+    if(!deletedItem) {
+        console.log("provided item id does not exist");
+        return res.status(400).send({});
+    } 
+
+    //update menu the item belongs to
+    const menuId = ObjectId(deletedItem.menu_id);
+    const menu = await Menu.findOne({_id: menuId});
+    if(menu) {
+        const updatedItems = menu.items.filter(function(value, index, arr) {
+            return !value.equals(itemId); //menu.items is an array of ObjectIds
+        });
+        const updatedValues = {
+            menu_name: menu.menu_name,
+            restaurant_id: menu.restaurant_id,
+            items: updatedItems,
+            category_tags: menu.category_tags
+        }
+        await Menu.findOneAndUpdate({_id: menuId}, updatedValues); //I dont need the returned value (found document)
+        return res.status(200).send(deletedItem);
+    } else {
+        console.log("deleted item's menu id does not exist");
+        return res.status(400).send({});
+    }
+});
+
+router.put("/update/item", async(req,res) => {
+    const itemID = ObjectId(req.body._id);
+    const item = await Item.findById(itemID);
+    if(!item) {
+        return res.status(400).send({});
+    } else {
+        await Item.findOneAndUpdate({_id: itemID}, req.body);
+        return res.status(200).send(item);
+    }
+});
+
+router.post("/add/order", async(req,res) => {
+    const restaurantID = ObjectId(req.body.restaurant_id);
+    const restaurant = Restaurant.findById(restaurantID);
+    if(restaurant) {
+        const newOrder = new Order(req.body);
+        newOrder.save().catch(err => console.log(err));
+        return res.status(200).send(newOrder);
+    } else {
+        return res.status(400).send({}); //restaurant doesn't exist
+    }
+});
+
+router.get("/fetch/orders/:restaurantId", async(req,res) => {
+    const orders = await Order.find({restaurant_id: req.params.restaurantId});
+    return res.status(200).send(orders); 
 });
 
 module.exports = router; //exports
